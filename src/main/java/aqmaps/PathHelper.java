@@ -88,7 +88,8 @@ public class PathHelper {
 			results.add(temp);
 			return results;
 		}
-		while (findLength(best, end) >= 0.0002) {
+		List<Point> visited = new ArrayList<>();
+		while (findLength(best, end) >= 0.0002 && visited.size() == 33) {
 			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
@@ -98,24 +99,25 @@ public class PathHelper {
 					degree = i * 10.0;
 				}
 			}
-			for (int i = 0; i < valid.size(); i++){
+			for (int i = 0; i < valid.size(); i++) {
 				Point currentOptoin = valid.get(i);
 				if (findLength(currentOptoin, end) < findLength(best, end)) {
 					best = currentOptoin;
 					degree = i * 10.0;
+				}
+
+				List<Point> points = Arrays.asList(current, best);
+
+				Point sensor = null;
+				if (findLength(best, end) < 0.0002) {
+					sensor = end;
+				}
+
+				Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
+				results.add(temp);
+				current = best;
+				visited.add(current);
 			}
-
-			List<Point> points = Arrays.asList(current, best);
-
-			Point sensor = null;
-			if (findLength(best, end) < 0.0002) {
-				sensor = end;
-			}
-
-			Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
-			results.add(temp);
-			current = best;
-
 		}
 		return results;
 	}
