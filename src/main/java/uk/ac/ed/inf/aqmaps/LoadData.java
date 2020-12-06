@@ -48,6 +48,31 @@ public class LoadData {
 		});
 		return results;
 	}
+	
+	public List<String> getWhat3Words() throws IOException, InterruptedException {
+
+		var mapsRequest = HttpRequest.newBuilder()
+				.uri(URI.create(baseurl + port + "/maps/" + year + "/" + month + "/" + date + "/air-quality-data.json"))
+				.build();
+		var mapsResponse = client.send(mapsRequest, BodyHandlers.ofString());
+		Type mapType = new TypeToken<ArrayList<Maps>>() {
+		}.getType();
+		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
+		List<String> results = new ArrayList<>();
+		mapList.forEach((e) -> {
+			String temp = e.location;
+			var wordsRequest = HttpRequest.newBuilder()
+					.uri(URI.create(baseurl + port + "/words/" + temp.replace(".", "/") + "/details.json")).build();
+			try {
+				var wordsResponse = client.send(wordsRequest, BodyHandlers.ofString());
+				var details = new Gson().fromJson(wordsResponse.body(), Details.class);
+				results.add(details.words);
+			} catch (IOException | InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		});
+		return results;
+	}
 
 	public double[] getBatteries() throws IOException, InterruptedException {
 		var mapsRequest = HttpRequest.newBuilder()

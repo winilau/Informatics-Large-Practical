@@ -27,6 +27,7 @@ public class FindPath {
 	public List<Path> findPath() throws IOException, InterruptedException {
 		var loadData = new LoadData(port, year, month, date);
 		List<Point> sensorLocations = loadData.getCoordinates();
+		List<String> what3words = loadData.getWhat3Words();
 		double[] sensorBatteriers = loadData.getBatteries();
 		String[] sensorReadings = loadData.getReadings();
 		Polygon[] noFlyZones = loadData.getNoFlyZones();
@@ -44,20 +45,6 @@ public class FindPath {
 		List<Path> wrap = pathHelper.findSteps(results.get(results.size()-1).getEnd(),drone);
 		results.addAll(wrap);
 		
-		List<Feature> fl = new ArrayList<>();
-		sensorLocations.forEach(s -> {
-			fl.add(Feature.fromGeometry(s));
-		});
-		for (Polygon p : noFlyZones) {
-			fl.add(Feature.fromGeometry(p));
-		}
-
-		pathHelper.getAllPaths(results).forEach(k -> {
-			fl.add(Feature.fromGeometry(k));
-		});
-
-		System.out.println(pathHelper.getAllPaths(results).size());
-		System.out.println(FeatureCollection.fromFeatures(fl).toJson());
 		return results;
 	}
 

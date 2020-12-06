@@ -1,9 +1,7 @@
 package uk.ac.ed.inf.aqmaps;
 
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
@@ -35,14 +33,14 @@ public class PathHelper {
 		}
 		List<LineString> visited = new ArrayList<>();
 		while (findLength(best, end) >= 0.0002 && visited.size() != 33) {
-			
+			List<Double> degrees = new ArrayList<>();
 			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
 						current.latitude() + directions[i][1]);
 				if (!inNoFlyZone(current, currentOption)) {
 					valid.add(currentOption);
-					degree = i * 10.0;
+					degrees.add(i * 10.0);
 				}
 			}
 			best = valid.get(0);
@@ -51,7 +49,7 @@ public class PathHelper {
 				List<Point> points = Arrays.asList(current,currentOption);
 				if (findLength(currentOption, end) < findLength(best, end) && !visited.contains(LineString.fromLngLats(points))) {
 					best = currentOption;
-					degree = i * 10.0;
+					degree = degrees.get(i);
 				}
 			}
 			
@@ -98,7 +96,7 @@ public class PathHelper {
 		}
 		return results;
 	}
-
+	
 	public Boolean inNoFlyZone(Point one, Point two) {
 		List<LineString> noFlyStrings = new ArrayList<>();
 		for (Polygon z : noFlyZones) {
