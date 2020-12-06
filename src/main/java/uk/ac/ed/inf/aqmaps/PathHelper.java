@@ -1,86 +1,33 @@
 package uk.ac.ed.inf.aqmaps;
 
 import java.awt.geom.Line2D;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import com.mapbox.geojson.Feature;
-import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
 
 public class PathHelper {
-	String port, year, month, date;
-	String baseurl = "http://localhost:";
-	Point drone;
 	double[][] directions = new double[36][2];
-
-	public PathHelper(String port, String year, String month, String date, String y, String x) {
-		this.port = port;
-		this.year = year;
-		this.month = month;
-		this.date = date;
-		this.drone = Point.fromLngLat(Double.parseDouble(x), Double.parseDouble(y));
+	Polygon[] noFlyZones;
+	
+	public PathHelper(Polygon[] noFlyZones){
+		this.noFlyZones = noFlyZones;
 		for (int i = 0; i < 36; i++) {
 			double angle = i * 10.0;
 			this.directions[i][0] = 0.0003 * Math.cos(Math.toRadians(angle));
 			this.directions[i][1] = 0.0003 * Math.sin(Math.toRadians(angle));
 		}
 	}
-
-	public List<Path> findPath() throws IOException, InterruptedException {
-		var loadData = new LoadData(port, year, month, date);
-		List<Point> sensorLocations = loadData.getCoordinates();
-		double[] sensorBatteriers = loadData.getBatteries();
-		String[] sensorReadings = loadData.getReadings();
-		Polygon[] noFlyZones = loadData.getNoFlyZones();
-		ArrayList<Point> visited = new ArrayList<>();
-		visited.add(drone);
-		List<Point> remaining = new ArrayList<>();
-		remaining.addAll(sensorLocations);
-		List<Path> results = new ArrayList<>();
-
-		while (remaining.size() > 0 && results.size() < 150) {
-			List<Path> best = findSteps(visited.get(visited.size() - 1), remaining.get(0), noFlyZones);
-			for (int i = 0; i < remaining.size(); i++) {
-				List<Path> current = findSteps(visited.get(visited.size() - 1), remaining.get(i), noFlyZones);
-				if (current.size() < best.size() || best.size() == 0) {
-					best = current;
-				}
-			}
-
-			remaining.remove(best.get(best.size() - 1).getSensor());
-			visited.add(best.get(best.size() - 1).getEnd());
-			results.addAll(best);
-		}
-
-		List<Path> wrap = findSteps(results.get(results.size() - 1).getEnd(), drone, noFlyZones);
-		results.addAll(wrap);
-
-		List<Feature> fl = new ArrayList<>();
-		sensorLocations.forEach(s -> {
-			fl.add(Feature.fromGeometry(s));
-		});
-		for (Polygon p : noFlyZones) {
-			fl.add(Feature.fromGeometry(p));
-		}
-
-		getAllPaths(results).forEach(k -> {
-			fl.add(Feature.fromGeometry(k));
-		});
-
-		System.out.println(getAllPaths(results).size());
-		System.out.println(FeatureCollection.fromFeatures(fl).toJson());
-		return null;
-	}
-
-	private List<Path> findSteps(Point start, Point end, Polygon[] noFlyZones) {
+	
+	public List<Path> findSteps(Point start, Point end) {
 		List<Path> results = new ArrayList<Path>();
 		double degree = 0;
 		Point best = Point.fromLngLat(start.longitude() + directions[0][0], start.latitude() + directions[0][1]);
 		Point current = start;
-		if (findLength(best, end) < 0.0002 && !inNoFlyZone(noFlyZones, start, best)) {
+		if (findLength(best, end) < 0.0002 && !inNoFlyZone(start, best)) {
 			List<Point> points = Arrays.asList(start, best);
 			Path temp = new Path(LineString.fromLngLats(points), degree, end);
 			results.add(temp);
@@ -93,7 +40,7 @@ public class PathHelper {
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
 						current.latitude() + directions[i][1]);
-				if (!inNoFlyZone(noFlyZones, current, currentOption)) {
+				if (!inNoFlyZone(current, currentOption)) {
 					valid.add(currentOption);
 					degree = i * 10.0;
 				}
@@ -121,14 +68,28 @@ public class PathHelper {
 		}
 		return results;
 	}
+	
+	public List<Path> findAllSteps(List<Point> route) {
+		List<Path> results =  new ArrayList<>();
+		Point start = route.get(0);
+		for (int i = 1; i < route.size();i++) {
+			List<Path> temp = findSteps(start,route.get(i));
+			if (!temp.isEmpty()) {
+				results.addAll(temp);
+				start = temp.get(temp.size()-1).getEnd();
+			}
+		}
+		return results;
+		
+	}
 
-	private double findLength(Point a, Point b) {
+	public double findLength(Point a, Point b) {
 		double x = Math.abs(a.longitude() - b.longitude());
 		double y = Math.abs(a.latitude() - b.latitude());
 		return Math.hypot(x, y);
 	}
 
-	private List<LineString> getAllPaths(List<Path> source) {
+	public List<LineString> getAllPaths(List<Path> source) {
 		List<LineString> results = new ArrayList<>();
 		for (int i = 0; i < source.size(); i++) {
 			results.add(source.get(i).getPath());
@@ -136,9 +97,9 @@ public class PathHelper {
 		return results;
 	}
 
-	private Boolean inNoFlyZone(Polygon[] zones, Point one, Point two) {
+	public Boolean inNoFlyZone(Point one, Point two) {
 		List<LineString> noFlyStrings = new ArrayList<>();
-		for (Polygon z : zones) {
+		for (Polygon z : noFlyZones) {
 			for (int i = 0; i < z.coordinates().get(0).size() - 1; i++) {
 				List<Point> temp = new ArrayList<>();
 				temp.add(z.coordinates().get(0).get(i));
@@ -168,4 +129,5 @@ public class PathHelper {
 		}
 		return false;
 	}
+
 }
