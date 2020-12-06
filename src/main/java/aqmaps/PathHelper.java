@@ -3,7 +3,6 @@ package aqmaps;
 import java.awt.geom.Line2D;
 import java.io.IOException;
 import java.util.*;
-import java.lang.*;
 
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
@@ -90,13 +89,20 @@ public class PathHelper {
 			return results;
 		}
 		while (findLength(best, end) >= 0.0002) {
+			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
 						current.latitude() + directions[i][1]);
-				if (findLength(currentOption, end) < findLength(best, end)) {
-					best = currentOption;
+				if (!inNoFlyZone(noFlyZones, current, currentOption)) {
+					valid.add(currentOption);
 					degree = i * 10.0;
 				}
+			}
+			for (int i = 0; i < valid.size(); i++){
+				Point currentOptoin = valid.get(i);
+				if (findLength(currentOptoin, end) < findLength(best, end)) {
+					best = currentOptoin;
+					degree = i * 10.0;
 			}
 
 			List<Point> points = Arrays.asList(current, best);
@@ -151,6 +157,10 @@ public class PathHelper {
 			double y4 = noFlyStrings.get(i).coordinates().get(1).latitude();
 
 			if (Line2D.linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4)) {
+				return true;
+			}
+
+			if ((x1 == x3 && y1 == y3) || (x2 == x4 && y2 == y4)) {
 				return true;
 			}
 		}
