@@ -38,12 +38,11 @@ public class FindPath {
 		List<Point> route = new ArrayList<>();
 		route.add(drone);
 		route.addAll(sensorLocations);
-		route.add(drone);
 		
 		var twoOpt = new TwoOpt(route);
 		List<Path> results = twoOpt.algorithm(noFlyZones);
-//		List<Path> wrap = pathHelper.findSteps(results.get(results.size()-1).getEnd(),drone);
-//		results.addAll(wrap);
+		List<Path> wrap = pathHelper.findSteps(results.get(results.size()-1).getEnd(),drone);
+		results.addAll(wrap);
 		
 		List<Feature> fl = new ArrayList<>();
 		sensorLocations.forEach(s -> {
