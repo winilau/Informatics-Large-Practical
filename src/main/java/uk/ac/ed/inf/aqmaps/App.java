@@ -16,7 +16,7 @@ public class App {
 		Polygon[] noFlyZones = loadData.getNoFlyZones();
 		var pathHelper = new FindPath(args[6], args[2], args[1], args[0], args[3], args[4]);
 		List<Path> finalPath = pathHelper.findPath();
-		var writeFiles = new WriteFiles(finalPath,sensorLocations, what3words, noFlyZones);
+		var writeFiles = new WriteFiles(finalPath,sensorLocations, what3words, noFlyZones, sensorBatteriers, sensorReadings);
 		
 	}
 }

@@ -22,7 +22,7 @@ public class TwoOpt {
 		List<Path> bestPath = pathHelper.findAllSteps(route);
 		while (improve < 2) {
 			for (int i = 1; i < size - 1; i++) {
-				for (int k = i + 1; k < size; k++) {
+				for (int k = i + 1; k < size-1; k++) {
 					List<Point> newRoute = TwoOptSwap(i, k, bestRoute);
 					List<Path> newPath = pathHelper.findAllSteps(newRoute);
 
