@@ -1,4 +1,4 @@
-package aqmaps;
+package uk.ac.ed.inf.aqmaps;
 
 public class Maps {
 	String location;

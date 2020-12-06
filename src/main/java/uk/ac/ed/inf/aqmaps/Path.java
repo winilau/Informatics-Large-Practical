@@ -1,4 +1,4 @@
-package aqmaps;
+package uk.ac.ed.inf.aqmaps;
 
 import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;

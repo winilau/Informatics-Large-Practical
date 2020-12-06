@@ -1,4 +1,4 @@
-package aqmaps;
+package uk.ac.ed.inf.aqmaps;
 
 import java.awt.geom.Line2D;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class PathHelper {
 		remaining.addAll(sensorLocations);
 		List<Path> results = new ArrayList<>();
 
-		while (remaining.size() > 0) {
+		while (remaining.size() > 0 && results.size() < 150) {
 			List<Path> best = findSteps(visited.get(visited.size() - 1), remaining.get(0), noFlyZones);
 			for (int i = 0; i < remaining.size(); i++) {
 				List<Path> current = findSteps(visited.get(visited.size() - 1), remaining.get(i), noFlyZones);
@@ -49,13 +49,11 @@ public class PathHelper {
 					best = current;
 				}
 			}
+
 			remaining.remove(best.get(best.size() - 1).getSensor());
 			visited.add(best.get(best.size() - 1).getEnd());
 			results.addAll(best);
 		}
-		results.forEach(e -> {
-			System.out.println(inNoFlyZone(noFlyZones, e.getStart(), e.getEnd()));
-		});
 
 		List<Path> wrap = findSteps(results.get(results.size() - 1).getEnd(), drone, noFlyZones);
 		results.addAll(wrap);
@@ -73,7 +71,7 @@ public class PathHelper {
 		});
 
 		System.out.println(getAllPaths(results).size());
-		System.out.print(FeatureCollection.fromFeatures(fl).toJson());
+		System.out.println(FeatureCollection.fromFeatures(fl).toJson());
 		return null;
 	}
 
@@ -89,7 +87,8 @@ public class PathHelper {
 			return results;
 		}
 		List<Point> visited = new ArrayList<>();
-		while (findLength(best, end) >= 0.0002 && visited.size() == 33) {
+		while (findLength(best, end) >= 0.0002 && visited.size() != 33) {
+			
 			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
@@ -99,25 +98,26 @@ public class PathHelper {
 					degree = i * 10.0;
 				}
 			}
+			best = valid.get(0);
 			for (int i = 0; i < valid.size(); i++) {
 				Point currentOptoin = valid.get(i);
 				if (findLength(currentOptoin, end) < findLength(best, end)) {
 					best = currentOptoin;
 					degree = i * 10.0;
 				}
-
-				List<Point> points = Arrays.asList(current, best);
-
-				Point sensor = null;
-				if (findLength(best, end) < 0.0002) {
-					sensor = end;
-				}
-
-				Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
-				results.add(temp);
-				current = best;
-				visited.add(current);
 			}
+			
+			List<Point> points = Arrays.asList(current, best);
+
+			Point sensor = null;
+			if (findLength(best, end) < 0.0002) {
+				sensor = end;
+			}
+
+			Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
+			results.add(temp);
+			current = best;
+			visited.add(current);
 		}
 		return results;
 	}

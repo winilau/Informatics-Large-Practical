@@ -1,4 +1,4 @@
-package aqmaps;
+package uk.ac.ed.inf.aqmaps;
 
 import java.io.*;
 import java.lang.reflect.Type;
