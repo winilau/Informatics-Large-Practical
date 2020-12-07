@@ -24,6 +24,31 @@ public class LoadData {
 
 	private static final HttpClient client = HttpClient.newHttpClient();
 
+	public Map<Point,String> getSensors() throws IOException, InterruptedException {
+
+		var mapsRequest = HttpRequest.newBuilder()
+				.uri(URI.create(baseurl + port + "/maps/" + year + "/" + month + "/" + date + "/air-quality-data.json"))
+				.build();
+		var mapsResponse = client.send(mapsRequest, BodyHandlers.ofString());
+		Type mapType = new TypeToken<ArrayList<Maps>>() {
+		}.getType();
+		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
+		Map<Point,String> results = new HashMap<>();
+		mapList.forEach((e) -> {
+			String temp = e.location;
+			var wordsRequest = HttpRequest.newBuilder()
+					.uri(URI.create(baseurl + port + "/words/" + temp.replace(".", "/") + "/details.json")).build();
+			try {
+				var wordsResponse = client.send(wordsRequest, BodyHandlers.ofString());
+				var details = new Gson().fromJson(wordsResponse.body(), Words.class);
+				results.put(Point.fromLngLat(details.coordinates.lng, details.coordinates.lat),details.words);
+			} catch (IOException | InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		});
+		return results;
+	}
+	
 	public List<Point> getCoordinates() throws IOException, InterruptedException {
 
 		var mapsRequest = HttpRequest.newBuilder()
@@ -33,40 +58,15 @@ public class LoadData {
 		Type mapType = new TypeToken<ArrayList<Maps>>() {
 		}.getType();
 		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
-		List<Point> results = new ArrayList<Point>();
+		List<Point> results = new ArrayList<>();
 		mapList.forEach((e) -> {
 			String temp = e.location;
 			var wordsRequest = HttpRequest.newBuilder()
 					.uri(URI.create(baseurl + port + "/words/" + temp.replace(".", "/") + "/details.json")).build();
 			try {
 				var wordsResponse = client.send(wordsRequest, BodyHandlers.ofString());
-				var details = new Gson().fromJson(wordsResponse.body(), Details.class);
+				var details = new Gson().fromJson(wordsResponse.body(), Words.class);
 				results.add(Point.fromLngLat(details.coordinates.lng, details.coordinates.lat));
-			} catch (IOException | InterruptedException e1) {
-				e1.printStackTrace();
-			}
-		});
-		return results;
-	}
-	
-	public List<String> getWhat3Words() throws IOException, InterruptedException {
-
-		var mapsRequest = HttpRequest.newBuilder()
-				.uri(URI.create(baseurl + port + "/maps/" + year + "/" + month + "/" + date + "/air-quality-data.json"))
-				.build();
-		var mapsResponse = client.send(mapsRequest, BodyHandlers.ofString());
-		Type mapType = new TypeToken<ArrayList<Maps>>() {
-		}.getType();
-		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
-		List<String> results = new ArrayList<>();
-		mapList.forEach((e) -> {
-			String temp = e.location;
-			var wordsRequest = HttpRequest.newBuilder()
-					.uri(URI.create(baseurl + port + "/words/" + temp.replace(".", "/") + "/details.json")).build();
-			try {
-				var wordsResponse = client.send(wordsRequest, BodyHandlers.ofString());
-				var details = new Gson().fromJson(wordsResponse.body(), Details.class);
-				results.add(details.words);
 			} catch (IOException | InterruptedException e1) {
 				e1.printStackTrace();
 			}

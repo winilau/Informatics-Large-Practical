@@ -1,6 +1,6 @@
 package uk.ac.ed.inf.aqmaps;
 
-public class Details {
+public class Words {
 	String country;
 	Square square;
 	String nearestPlace;
