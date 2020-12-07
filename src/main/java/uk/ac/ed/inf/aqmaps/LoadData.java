@@ -74,7 +74,7 @@ public class LoadData {
 		return results;
 	}
 
-	public double[] getBatteries() throws IOException, InterruptedException {
+	public Map<String,List<String>> getSensorInfo() throws IOException, InterruptedException {
 		var mapsRequest = HttpRequest.newBuilder()
 				.uri(URI.create(baseurl + port + "/maps/" + year + "/" + month + "/" + date + "/air-quality-data.json"))
 				.build();
@@ -82,24 +82,9 @@ public class LoadData {
 		Type mapType = new TypeToken<ArrayList<Maps>>() {
 		}.getType();
 		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
-		double[] results = new double[mapList.size()];
+		Map<String,List<String>> results = new HashMap<>();
 		mapList.forEach((e) -> {
-			results[mapList.indexOf(e)] = e.battery;
-		});
-		return results;
-	}
-
-	public String[] getReadings() throws IOException, InterruptedException {
-		var mapsRequest = HttpRequest.newBuilder()
-				.uri(URI.create(baseurl + port + "/maps/" + year + "/" + month + "/" + date + "/air-quality-data.json"))
-				.build();
-		var mapsResponse = client.send(mapsRequest, BodyHandlers.ofString());
-		Type mapType = new TypeToken<ArrayList<Maps>>() {
-		}.getType();
-		ArrayList<Maps> mapList = new Gson().fromJson(mapsResponse.body(), mapType);
-		String[] results = new String[mapList.size()];
-		mapList.forEach((e) -> {
-			results[mapList.indexOf(e)] = e.reading;
+			results.put(e.location,Arrays.asList(e.reading,e.battery));
 		});
 		return results;
 	}

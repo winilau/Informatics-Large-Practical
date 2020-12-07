@@ -10,6 +10,8 @@ import com.mapbox.geojson.Polygon;
 public class PathHelper {
 	double[][] directions = new double[36][2];
 	Polygon[] noFlyZones;
+	//temp just for testing; change back to flexible code later
+	Point drone = Point.fromLngLat( -3.1878, 55.9444);
 
 	public PathHelper(Polygon[] noFlyZones) {
 		this.noFlyZones = noFlyZones;
@@ -57,7 +59,7 @@ public class PathHelper {
 			List<Point> points = Arrays.asList(current, best);
 
 			Point sensor = null;
-			if (findLength(best, end) < 0.0002) {
+			if (findLength(best, end) < 0.0002 && !end.equals(drone)) {
 				sensor = end;
 			}
 

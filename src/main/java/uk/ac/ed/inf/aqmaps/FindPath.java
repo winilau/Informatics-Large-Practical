@@ -27,8 +27,6 @@ public class FindPath {
 	public List<Path> findPath() throws IOException, InterruptedException {
 		var loadData = new LoadData(port, year, month, date);
 		List<Point> sensorLocations = loadData.getCoordinates();
-		double[] sensorBatteriers = loadData.getBatteries();
-		String[] sensorReadings = loadData.getReadings();
 		Polygon[] noFlyZones = loadData.getNoFlyZones();
 		List<Point> route = new ArrayList<>();
 		route.add(drone);
