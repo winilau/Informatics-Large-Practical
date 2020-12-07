@@ -136,7 +136,7 @@ public class PathHelper {
 				return true;
 			}
 
-			if (x1 == x3 || y1 == y3 || x2 == x4 || y2 == y4) {
+			if ((x1 == x3 && y1 == y3) || (x2 == x4 && y2 == y4)) {
 				return true;
 			}
 		}

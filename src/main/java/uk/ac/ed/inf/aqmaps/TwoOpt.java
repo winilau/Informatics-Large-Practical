@@ -19,24 +19,25 @@ public class TwoOpt {
 		int improve = 0;
 
 		List<Point> bestRoute = route;
-		List<Path> bestPath = pathHelper.findAllSteps(route);
-		while (improve < 3) {
+		while (improve < 2) {
 			for (int i = 1; i < size - 1; i++) {
-				for (int k = i + 1; k < size-1; k++) {
+				for (int k = i + 1; k < size - 1; k++) {
 					List<Point> newRoute = TwoOptSwap(i, k, bestRoute);
-					List<Path> newPath = pathHelper.findAllSteps(newRoute);
+					// Since the only different part of the route is the reversed part, I only
+					// compared the steps it takes to do the route from i-1 to k+1
+					List<Path> reversed = pathHelper.findAllSteps(newRoute.subList(i - 1, k + 2));
+					List<Path> original = pathHelper.findAllSteps(bestRoute.subList(i - 1, k + 2));
 
-					if (newPath.size() < bestPath.size()) {
+					if (reversed.size() < original.size()) {
 						// Improvement found so reset
 						improve = 0;
 						bestRoute = newRoute;
-						bestPath = newPath;
 					}
 				}
 			}
 			improve++;
 		}
-		return bestPath;
+		return pathHelper.findAllSteps(bestRoute);
 	}
 
 	private List<Point> TwoOptSwap(int i, int k, List<Point> route) {
