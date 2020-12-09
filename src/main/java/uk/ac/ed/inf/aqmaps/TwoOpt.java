@@ -2,20 +2,20 @@ package uk.ac.ed.inf.aqmaps;
 
 import java.util.*;
 import com.mapbox.geojson.Point;
-import com.mapbox.geojson.Polygon;
 
 public class TwoOpt {
 	int size;
 	List<Point> route;
-
-	public TwoOpt(List<Point> route) {
+	PathHelper pathHelper;
+	
+	public TwoOpt(List<Point> route, PathHelper pathHelper) {
 		this.route = route;
 		size = route.size();
+		this.pathHelper = pathHelper;
 
 	}
 
-	public List<Path> algorithm(Polygon[] noFlyZones) {
-		var pathHelper = new PathHelper(noFlyZones);
+	public List<Point> findBestRoute() {
 		int improve = 0;
 
 		List<Point> bestRoute = route;
@@ -37,7 +37,7 @@ public class TwoOpt {
 			}
 			improve++;
 		}
-		return pathHelper.findAllSteps(bestRoute);
+		return bestRoute;
 	}
 
 	private List<Point> TwoOptSwap(int i, int k, List<Point> route) {

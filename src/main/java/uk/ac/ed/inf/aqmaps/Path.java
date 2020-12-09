@@ -33,4 +33,8 @@ public class Path {
 	public Point getSensor() {
 		return sensor;
 	}
+	
+	public void setSensor(Point sensor) {
+		this.sensor = sensor;
+	}
 }

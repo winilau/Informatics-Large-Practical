@@ -1,35 +1,72 @@
 package uk.ac.ed.inf.aqmaps;
 
-import java.util.*;
-import com.mapbox.geojson.Point;
-
-import java.io.FileWriter; 
 import java.io.IOException;
+import java.util.*;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.Point;
+import java.io.FileWriter; 
 
 public class WriteFiles {
 
-	public WriteFiles(List<Path> finalPath, String geoJson, LoadData load) throws IOException, InterruptedException {
+	public WriteFiles(List<Path> finalPath, List<Point> finalRoute, Data data, PathHelper pathHelper) {
+		Map<Point,String> sensors = data.sensors;
+		Map<String,List<String>> sensorInfo = data.sensorsInfo;
+		List<Point> sensorLocations = data.sensorLocations;
 
+		finalRoute.remove(0);
+		finalRoute.remove(finalRoute.size()-1);
+		List<Feature> fl = new ArrayList<>();
 		String flightPath = "";
-		int count = 0;
+		
+		//limit the moves to 150
+		if(finalPath.size()>150) {
+			finalPath = finalPath.subList(0, 151);
+		}
+		
+		List<Point> visitedSensors = new ArrayList<>();
+		
 		for (int i = 0; i < finalPath.size(); i++) {
 			double startLong = finalPath.get(i).getStart().coordinates().get(0);
 			double startLat = finalPath.get(i).getStart().coordinates().get(1);
 			double endLong = finalPath.get(i).getEnd().coordinates().get(0);
 			double endLat = finalPath.get(i).getEnd().coordinates().get(1);
-			String sensor = "null";
-			if (finalPath.get(i).getSensor() != null) {
-				count++;
-				Map<Point, String> pointToWhat3Words = load.getSensors();
-				sensor = pointToWhat3Words.get(finalPath.get(i).getSensor());
+			
+			Feature line = Feature.fromGeometry(finalPath.get(i).getPath());
+			fl.add(line);
+			String what3word = "null";
+			if (finalPath.get(i).getSensor() != null && sensorInfo.containsKey(sensors.get(finalPath.get(i).getSensor()))) {
+				what3word = sensors.get(finalPath.get(i).getSensor());
+				Feature point = Feature.fromGeometry(finalPath.get(i).getSensor());
+				point.addStringProperty("location", what3word);
+				point.addStringProperty("rbg-string",getStringProperty(sensorInfo.get(what3word)).get(0));
+				point.addStringProperty("marker-color",getStringProperty(sensorInfo.get(what3word)).get(0));
+				point.addStringProperty("marker-symbol", getStringProperty(sensorInfo.get(what3word)).get(1));
+				
+				fl.add(point);
+				visitedSensors.add(finalPath.get(i).getSensor());
 			}
 			flightPath += i+1 + "," + startLong + "," + startLat + "," + finalPath.get(i).getDegree() + "," + endLong
-					+ "," + endLat + "," + sensor + "\n";
+					+ "," + endLat + "," + what3word + "\n";
 		}
-		System.out.println(count);
-
+		
+		//add the non-visited sensors
+		if (!finalRoute.containsAll(sensorLocations) && !sensorLocations.containsAll(finalRoute)) {
+			System.out.println("didn't finish");
+			for (int i = 0; i < sensorLocations.size(); i++) {
+				if (!finalRoute.contains(sensorLocations.get(i))){
+					fl.add(Feature.fromGeometry(sensorLocations.get(i)));
+				}
+			}
+		}
+		System.out.println(visitedSensors.size());
+		String geoJson = FeatureCollection.fromFeatures(fl).toJson();
+		writeToFiles(data, flightPath, geoJson);
+	}
+	
+	private void writeToFiles(Data data, String flightPath, String geoJson) {
 		try {
-			String pathFileName = "flightpath-" + load.date + "-" + load.month + "-" + load.year + ".txt";
+			String pathFileName = "flightpath-" + data.date + "-" + data.month + "-" + data.year + ".txt";
 			FileWriter myWriter = new FileWriter(pathFileName);
 			myWriter.write(flightPath);
 			myWriter.close();
@@ -40,7 +77,7 @@ public class WriteFiles {
 		}
 
 		try {
-			String ReadingsFileName = "readings-" + load.date + "-" + load.month + "-" + load.year + ".geojson";
+			String ReadingsFileName = "readings-" + data.date + "-" + data.month + "-" + data.year + ".geojson";
 			FileWriter myWriter = new FileWriter(ReadingsFileName);
 			myWriter.write(geoJson);
 			myWriter.close();
@@ -49,6 +86,39 @@ public class WriteFiles {
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
+	}
+
+	private List<String> getStringProperty(List<String> info) {
+		String reading = info.get(0);
+		String battery = info.get(1);
+		
+		List<String> results = new ArrayList<>();
+		if (Double.parseDouble(battery) < 10) {
+			results = Arrays.asList("#000000","cross");
+			return results;
+		}
+		
+		Double data = Double.parseDouble(reading);
+		
+		if(data >= 0 && data < 32) {
+			results = Arrays.asList("#00ff00","lighthouse");
+		}else if(data >= 32 && data < 64) {
+			results = Arrays.asList("#40ff00","lighthouse");
+		}else if(data >= 64 && data < 96) {
+			results = Arrays.asList("#80ff00","lighthouse");
+		}else if(data >=96 && data < 128) {
+			results = Arrays.asList("#c0ff00","lighthouse");
+		}else if(data >= 128 && data < 160) {
+			results = Arrays.asList("#ffc000","danger");
+		}else if(data >= 160 && data < 192) {
+			results = Arrays.asList("#ff8000","danger");
+		}else if(data >= 192 && data < 224) {
+			results = Arrays.asList("#ff4000","danger");
+		}else if(data >= 224 && data < 256) {
+			results = Arrays.asList("#ff0000","danger");
+		}
+		
+		return results;
 	}
 
 }

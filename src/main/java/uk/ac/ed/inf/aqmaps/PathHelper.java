@@ -10,11 +10,11 @@ import com.mapbox.geojson.Polygon;
 public class PathHelper {
 	double[][] directions = new double[36][2];
 	Polygon[] noFlyZones;
-	//temp just for testing; change back to flexible code later
-	Point drone = Point.fromLngLat( -3.1878, 55.9444);
+	Point drone;
 
-	public PathHelper(Polygon[] noFlyZones) {
-		this.noFlyZones = noFlyZones;
+	public PathHelper(Data data) {
+		this.noFlyZones = data.noFlyZones;
+		this.drone = data.drone;
 		for (int i = 0; i < 36; i++) {
 			double angle = i * 10.0;
 			this.directions[i][0] = 0.0003 * Math.cos(Math.toRadians(angle));
@@ -22,7 +22,24 @@ public class PathHelper {
 		}
 	}
 
-	public List<Path> findSteps(Point start, Point end) {
+	public List<Path> findAllSteps(List<Point> route) {
+		List<Path> results = new ArrayList<>();
+		Point start = route.get(0);
+		for (int i = 1; i < route.size(); i++) {
+			List<Path> temp = findSteps(start, route.get(i));
+			if (temp.size() == 0) {
+				System.out.println(route.get(i));
+			}
+
+			if (!temp.isEmpty()) {
+				results.addAll(temp);
+				start = temp.get(temp.size() - 1).getEnd();
+			}
+		}
+		return results;
+	}
+
+	private List<Path> findSteps(Point start, Point end) {
 		List<Path> results = new ArrayList<Path>();
 		int degree = 0;
 		Point best = Point.fromLngLat(start.longitude() + directions[0][0], start.latitude() + directions[0][1]);
@@ -34,7 +51,7 @@ public class PathHelper {
 			return results;
 		}
 		List<LineString> visited = new ArrayList<>();
-		while (findLength(best, end) >= 0.0002 && visited.size() < 50) {
+		while (findLength(best, end) >= 0.0002) {
 			List<Integer> degrees = new ArrayList<>();
 			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
@@ -49,8 +66,9 @@ public class PathHelper {
 			for (int i = 0; i < valid.size(); i++) {
 				Point currentOption = valid.get(i);
 				List<Point> points = Arrays.asList(current, currentOption);
-				if (findLength(currentOption, end) < findLength(best, end)
-						&& !visited.contains(LineString.fromLngLats(points))) {
+				double currentDistance = findLength(currentOption, end);
+				if (currentDistance < findLength(best, end) && !visited.contains(LineString.fromLngLats(points))
+						&& (currentDistance < 0.0002 || currentDistance >= 0.0003)) {
 					best = currentOption;
 					degree = degrees.get(i);
 				}
@@ -59,10 +77,9 @@ public class PathHelper {
 			List<Point> points = Arrays.asList(current, best);
 
 			Point sensor = null;
-			if (findLength(best, end) < 0.0002 && !end.equals(drone)) {
+			if (findLength(best, end) < 0.0002 && end != drone) {
 				sensor = end;
 			}
-
 			Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
 			results.add(temp);
 			current = best;
@@ -71,35 +88,13 @@ public class PathHelper {
 		return results;
 	}
 
-	public List<Path> findAllSteps(List<Point> route) {
-		List<Path> results = new ArrayList<>();
-		Point start = route.get(0);
-		for (int i = 1; i < route.size(); i++) {
-			List<Path> temp = findSteps(start, route.get(i));
-			if (!temp.isEmpty()) {
-				results.addAll(temp);
-				start = temp.get(temp.size() - 1).getEnd();
-			}
-		}
-		return results;
-
-	}
-
-	public double findLength(Point a, Point b) {
+	private double findLength(Point a, Point b) {
 		double x = Math.abs(a.longitude() - b.longitude());
 		double y = Math.abs(a.latitude() - b.latitude());
 		return Math.hypot(x, y);
 	}
 
-	public List<LineString> getAllPaths(List<Path> source) {
-		List<LineString> results = new ArrayList<>();
-		for (int i = 0; i < source.size(); i++) {
-			results.add(source.get(i).getPath());
-		}
-		return results;
-	}
-
-	public Boolean inNoFlyZone(Point one, Point two) {
+	private Boolean inNoFlyZone(Point one, Point two) {
 		List<LineString> noFlyStrings = new ArrayList<>();
 		for (Polygon z : noFlyZones) {
 			for (int i = 0; i < z.coordinates().get(0).size() - 1; i++) {
@@ -110,16 +105,16 @@ public class PathHelper {
 			}
 		}
 
-		// this is the outer square of where the drone should not exceed. Since the concept is
-		// similar to the no fly zones I decided to implement it here.
+		// this is the outer square of where the drone should not exceed. Since the
+		// concept is similar to the no fly zones I decided to implement it here.
 		List<Point> outer = Arrays.asList(Point.fromLngLat(-3.192473, 55.946233),
 				Point.fromLngLat(-3.184319, 55.946233), Point.fromLngLat(-3.184319, 55.942617),
 				Point.fromLngLat(-3.192473, 55.942617));
-		
+
 		noFlyStrings.add(LineString.fromLngLats(outer.subList(0, 2)));
 		noFlyStrings.add(LineString.fromLngLats(outer.subList(1, 3)));
 		noFlyStrings.add(LineString.fromLngLats(outer.subList(2, 4)));
-		noFlyStrings.add(LineString.fromLngLats(Arrays.asList(outer.get(3),outer.get(0))));
+		noFlyStrings.add(LineString.fromLngLats(Arrays.asList(outer.get(3), outer.get(0))));
 
 		double x1 = one.longitude();
 		double y1 = one.latitude();
@@ -136,6 +131,8 @@ public class PathHelper {
 				return true;
 			}
 
+			// since the lindsIntersect function doesn't check if the line just touches, I
+			// added some checks to check that
 			if ((x1 == x3 && y1 == y3) || (x2 == x4 && y2 == y4)) {
 				return true;
 			}
