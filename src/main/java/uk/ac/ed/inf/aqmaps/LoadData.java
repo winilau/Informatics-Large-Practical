@@ -14,12 +14,14 @@ import com.mapbox.geojson.*;
 public class LoadData {
 	String port, year, month, date;
 	String baseurl = "http://localhost:";
+	Point drone;
 	
-	public LoadData(String port, String year, String month, String date) {
+	public LoadData(String port, String year, String month, String date, String y, String x) {
 		this.port = port;
 		this.year = year;
 		this.month = month;
 		this.date = date;
+		this.drone = Point.fromLngLat(Double.valueOf(x), Double.valueOf(y));
 	}
 
 	private static final HttpClient client = HttpClient.newHttpClient();

@@ -5,10 +5,10 @@ import com.mapbox.geojson.Point;
 
 public class Path {
 	LineString path;
-	Double degree;
+	Integer degree;
 	Point sensor;
 	
-	public Path(LineString path, Double degree, Point sensor) {
+	public Path(LineString path, int degree, Point sensor) {
 		this.path = path;
 		this.degree = degree;
 		this.sensor = sensor;

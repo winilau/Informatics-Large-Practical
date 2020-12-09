@@ -24,7 +24,7 @@ public class PathHelper {
 
 	public List<Path> findSteps(Point start, Point end) {
 		List<Path> results = new ArrayList<Path>();
-		double degree = 0;
+		int degree = 0;
 		Point best = Point.fromLngLat(start.longitude() + directions[0][0], start.latitude() + directions[0][1]);
 		Point current = start;
 		if (findLength(best, end) < 0.0002 && !inNoFlyZone(start, best)) {
@@ -35,14 +35,14 @@ public class PathHelper {
 		}
 		List<LineString> visited = new ArrayList<>();
 		while (findLength(best, end) >= 0.0002 && visited.size() < 50) {
-			List<Double> degrees = new ArrayList<>();
+			List<Integer> degrees = new ArrayList<>();
 			List<Point> valid = new ArrayList<>();
 			for (int i = 1; i < 36; i++) {
 				Point currentOption = Point.fromLngLat(current.longitude() + directions[i][0],
 						current.latitude() + directions[i][1]);
 				if (!inNoFlyZone(current, currentOption)) {
 					valid.add(currentOption);
-					degrees.add(i * 10.0);
+					degrees.add(i * 10);
 				}
 			}
 			best = valid.get(0);

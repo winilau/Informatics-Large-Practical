@@ -8,14 +8,19 @@ import com.mapbox.geojson.Polygon;
 
 public class App {
 	public static void main(String[] args) throws IOException, InterruptedException {
-		var loadData = new LoadData(args[6],  args[2], args[1], args[0]);
-		Map<Point,String> sensorLocations = loadData.getSensors();
-		Map<String,List<String>> sensorInfo = loadData.getSensorInfo();
+		var loadData = new LoadData(args[6],  args[2], args[1], args[0], args[3], args[4]);
+		List<Point> sensorLocations = loadData.getCoordinates();
 		Polygon[] noFlyZones = loadData.getNoFlyZones();
-		var pathHelper = new FindPath(args[6], args[2], args[1], args[0], args[3], args[4]);
-		List<Path> finalPath = pathHelper.findPath();
-		//var writeFiles = new WriteFiles(finalPath,sensorLocations, what3words, noFlyZones, sensorBatteriers, sensorReadings);
-		var featureHelper = new FeatureHelper(finalPath,sensorLocations, noFlyZones, sensorInfo);
-		featureHelper.getFeatureCollection();
+		
+		List<Point> route = new ArrayList<>();
+		route.add(loadData.drone);
+		route.addAll(sensorLocations);
+		route.add(loadData.drone);
+		var twoOpt = new TwoOpt(route);
+		List<Path> finalPath = twoOpt.algorithm(noFlyZones);
+		
+		var featureHelper = new FeatureHelper(finalPath,loadData);
+		String geoJson = featureHelper.getFeatureCollection();
+		new WriteFiles(finalPath, geoJson, loadData);
 	}
 }

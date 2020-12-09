@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.aqmaps;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.mapbox.geojson.Feature;
@@ -14,12 +15,11 @@ public class FeatureHelper {
 	Polygon[] noFlyZones;
 	Map<String,List<String>> sensorInfo;
 
-	public FeatureHelper(List<Path> finalPath, Map<Point,String> sensors,
-			Polygon[] noFlyZones, Map<String,List<String>> sensorInfo) {
+	public FeatureHelper(List<Path> finalPath, LoadData loadData) throws IOException, InterruptedException {
 		this.finalPath = finalPath;
-		this.sensors = sensors;
-		this.noFlyZones = noFlyZones;
-		this.sensorInfo = sensorInfo;
+		this.sensors = loadData.getSensors();
+		this.noFlyZones = loadData.getNoFlyZones();
+		this.sensorInfo = loadData.getSensorInfo();
 	}
 
 	public String getFeatureCollection() {
@@ -46,9 +46,6 @@ public class FeatureHelper {
 				fl.add(point);
 			}
 		}
-
-		System.out.println(pathHelper.getAllPaths(finalPath).size());
-		System.out.println(FeatureCollection.fromFeatures(fl).toJson());
 		return FeatureCollection.fromFeatures(fl).toJson();
 	}
 
