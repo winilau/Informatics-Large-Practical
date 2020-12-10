@@ -15,9 +15,8 @@ public class TwoOpt {
 
 	}
 
-	public List<Point> findBestRoute() {
+	public List<Path> findBestRoute() {
 		int improve = 0;
-
 		List<Point> bestRoute = route;
 		while (improve < 2) {
 			for (int i = 1; i < size - 1; i++) {
@@ -37,7 +36,7 @@ public class TwoOpt {
 			}
 			improve++;
 		}
-		return bestRoute;
+		return pathHelper.findAllSteps(bestRoute);
 	}
 
 	private List<Point> TwoOptSwap(int i, int k, List<Point> route) {
