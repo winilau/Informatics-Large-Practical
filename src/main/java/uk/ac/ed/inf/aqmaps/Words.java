@@ -1,5 +1,12 @@
 package uk.ac.ed.inf.aqmaps;
 
+/**
+ * This class is used to extract and access information from the words folder in
+ * the webserver.
+ * 
+ * @see LoadData.
+ */
+
 public class Words {
 	String country;
 	Square square;
