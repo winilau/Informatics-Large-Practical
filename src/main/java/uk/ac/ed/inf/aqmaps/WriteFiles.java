@@ -199,7 +199,7 @@ public class WriteFiles {
 		String battery = sensorInfo.get(1);
 
 		/**
-		 * check if battery is low and return the corresponding string property
+		 * check if battery is low and return the corresponding string properties
 		 */
 		List<String> results = new ArrayList<>();
 		if (Double.parseDouble(battery) < 10) {
@@ -208,7 +208,7 @@ public class WriteFiles {
 		}
 
 		/**
-		 * check to see which range the reading is in and return the corresponding string property
+		 * check to see which range the reading is in and return the corresponding string properties
 		 */
 		Double data = Double.parseDouble(reading);
 		if (data >= 0 && data < 32) {
