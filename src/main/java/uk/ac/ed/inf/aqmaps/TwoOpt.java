@@ -32,7 +32,7 @@ public class TwoOpt {
 	}
 
 	/**
-	 * useing the 2 opt algorithm to find best path: set the best route to the
+	 * using the 2 opt algorithm to find best path: set the best route to the
 	 * initial route. loop through all possible i to k within size and them and
 	 * compare the if the swapped one has lower number of steps then the best. if so
 	 * set best to new route. repeat this process until improve == 2 is reached.

@@ -19,7 +19,7 @@ public class PathHelper {
 	 * a 2D array of the 36 options a point could take ordered in degrees in the
 	 * increment of 10 (row 0 being degree 0, row 1 being degree 10 and so on); each
 	 * row is one option and column 0 corresponds to x (i.e. longitude) where as
-	 * column 1 corresoinds to y (i.e. latiitude).
+	 * column 1 corresponds to y (i.e. latitude).
 	 */
 	double[][] directions = new double[36][2];
 	Polygon[] noFlyZones;
@@ -90,7 +90,7 @@ public class PathHelper {
 		 */
 		Point best = Point.fromLngLat(start.longitude() + directions[0][0], start.latitude() + directions[0][1]);
 		/**
-		 * the corresponding degree of a stpe; initialise at 0 corresponding with best
+		 * the corresponding degree of a step; initialise at 0 corresponding with best
 		 */
 		int degree = 0;
 		/**
@@ -174,7 +174,7 @@ public class PathHelper {
 			List<Point> points = Arrays.asList(current, best);
 			/**
 			 * add a path with LineString from current to best, corresponding degree, and
-			 * the senor if there is one but null otherwise
+			 * the sensor if any null otherwise
 			 */
 			Path temp = new Path(LineString.fromLngLats(points), degree, sensor);
 			/**
@@ -215,7 +215,7 @@ public class PathHelper {
 	private Boolean inNoFlyZone(Point a, Point b) {
 		List<LineString> noFlyStrings = new ArrayList<>();
 		/**
-		 * coverts the noFlyZones polygons into a the list of LineStrings that
+		 * convert the noFlyZones polygons into a the list of LineStrings that
 		 * represents their outer lines
 		 */
 		for (Polygon z : noFlyZones) {

@@ -27,8 +27,8 @@ public class LoadData {
 	 * @param year  year of the air quality data; used with month and date
 	 * @param month month of the air quality data; used with year and date
 	 * @param date  date of the air quality data; used with month and year
-	 * @param y     latitutude of starting location
-	 * @param x     longitutude of starting location
+	 * @param y     latitude of starting location
+	 * @param x     longitude of starting location
 	 */
 	public LoadData(String port, String year, String month, String date, String y, String x) {
 		this.port = port;

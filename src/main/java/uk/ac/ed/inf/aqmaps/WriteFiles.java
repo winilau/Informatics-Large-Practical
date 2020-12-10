@@ -133,12 +133,13 @@ public class WriteFiles {
 		}
 
 		/**
-		 * convert fl into a geoJson string of path and sensors to be written into the file
+		 * convert fl into a geoJson string of path and sensors to be written into the
+		 * file
 		 */
 		String geoJson = FeatureCollection.fromFeatures(fl).toJson();
 
 		/**
-		 * create and write the output files from the comupted content 
+		 * create and write the output files from the content obtained from code above
 		 */
 		writeToFiles(data, flightPath, geoJson);
 
@@ -208,7 +209,8 @@ public class WriteFiles {
 		}
 
 		/**
-		 * check to see which range the reading is in and return the corresponding string properties
+		 * check to see which range the reading is in and return the corresponding
+		 * string properties
 		 */
 		Double data = Double.parseDouble(reading);
 		if (data >= 0 && data < 32) {
