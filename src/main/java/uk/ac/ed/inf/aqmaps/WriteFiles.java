@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
 
@@ -57,6 +58,11 @@ public class WriteFiles {
 		 * keep track of all the visited sensors to see if all is reached
 		 */
 		List<Point> visitedSensors = new ArrayList<>();
+		/**
+		 * convert the path from small linestrings to a big one
+		 */
+		List<Point> path = new ArrayList<>();
+		path.add(data.drone);
 
 		/**
 		 * for each path add the corresponding path in flightPath and LineString and
@@ -71,8 +77,7 @@ public class WriteFiles {
 			/**
 			 * add current LineString from path to fl
 			 */
-			Feature line = Feature.fromGeometry(finalPath.get(i).getPath());
-			fl.add(line);
+			path.add(finalPath.get(i).getEnd());
 			/**
 			 * for the string property "location"; initialise as the string null and if the
 			 * current path has a sensor then set to corresponding sensor
@@ -131,6 +136,12 @@ public class WriteFiles {
 				}
 			}
 		}
+		
+		/**
+		 * add the path as one single LineString
+		 */
+		Feature line = Feature.fromGeometry(LineString.fromLngLats(path));
+		fl.add(line);
 
 		/**
 		 * convert fl into a geoJson string of path and sensors to be written into the
