@@ -61,10 +61,4 @@ public class Path {
 		return sensor;
 	}
 
-	/** 
-	 * @param Point of the corresponding sensor of the step if any
-	 */
-	public void setSensor(Point sensor) {
-		this.sensor = sensor;
-	}
 }
