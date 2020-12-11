@@ -153,14 +153,6 @@ public class WriteFiles {
 		 * create and write the output files from the content obtained from code above
 		 */
 		writeToFiles(data, flightPath, geoJson);
-
-		/**
-		 * print out the path with the noFlyZones for testing
-		 */
-		for (Polygon P : data.noFlyZones) {
-			fl.add(Feature.fromGeometry(P));
-		}
-		System.out.println(FeatureCollection.fromFeatures(fl).toJson());
 	}
 
 	/**
